@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 type RequestOption interface {
@@ -44,18 +45,24 @@ func ReqOptionAddHeaderKV(k, v string) RequestOption {
 	})
 }
 
-func (r *requests) Get(url string, options ...RequestOption) ([]byte, error) {
+func (r *requests) Get(url string, options ...RequestOption) (Response, error) {
 	return r.request(http.MethodGet, url, options...)
 }
 
-func (r *requests) Post(url string, options ...RequestOption) ([]byte, error) {
+func (r *requests) Post(url string, options ...RequestOption) (Response, error) {
 	return r.request(http.MethodPost, url, options...)
 }
 
-func (r *requests) request(method, url string, options ...RequestOption) ([]byte, error) {
+func (r *requests) request(method, uri string, options ...RequestOption) (Response, error) {
 	if r.err != nil {
-		return nil, r.err
+		return Response{}, r.err
 	}
+
+	URL, err := url.Parse(uri)
+	if err != nil {
+		return Response{}, err
+	}
+	r.urls[URL.Host] = URL
 
 	var body io.Reader
 	for _, v := range options {
@@ -65,24 +72,29 @@ func (r *requests) request(method, url string, options ...RequestOption) ([]byte
 		}
 	}
 
-	req, err := http.NewRequest(method, url, body)
+	req, err := http.NewRequest(method, uri, body)
 	if err != nil {
-		return nil, err
+		return Response{}, err
 	}
 
 	for _, v := range options {
 		if _, ok := v.(*bodyRequestOption); !ok {
 			if err := v.Bind(req); err != nil {
-				return nil, err
+				return Response{}, err
 			}
 		}
 	}
 
 	resp, err := r.client.Do(req)
 	if err != nil {
-		return nil, err
+		return Response{}, err
 	}
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	bs, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return Response{}, err
+	}
+
+	return Response{Bytes: bs, Response: resp}, nil
 }

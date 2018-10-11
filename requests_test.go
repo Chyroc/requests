@@ -15,17 +15,29 @@ func TestNew(t *testing.T) {
 	withCookie := requests.New(requests.OptionEnableCookie)
 
 	{
-		bs, err := noCookie.Get(url)
+		resp, err := noCookie.Get(url)
 		as.Nil(err)
-		t.Log(string(bs))
-		as.Equal("with cookie!", string(bs))
+		as.Equal("with cookie!", string(resp.Bytes))
+		as.Nil(noCookie.Cookies())
 	}
 
 	{
-		bs, err := withCookie.Get(url)
+		resp, err := withCookie.Get(url)
 		as.Nil(err)
-		t.Log(string(bs))
-		as.Equal("with cookie!", string(bs))
+		as.Equal("with cookie!", string(resp.Bytes))
+		c := withCookie.Cookies()
+		as.Len(c, 1)
+		as.Equal("a", c[0].Name)
+		as.Equal("b", c[0].Value)
 	}
 
+	{
+		resp, err := withCookie.Get(url)
+		as.Nil(err)
+		as.Equal("cookie: b", string(resp.Bytes))
+		c := withCookie.Cookies()
+		as.Len(c, 1)
+		as.Equal("a", c[0].Name)
+		as.Equal("b", c[0].Value)
+	}
 }

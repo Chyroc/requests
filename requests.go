@@ -1,14 +1,16 @@
 package requests
 
 import (
-	"golang.org/x/net/publicsuffix"
+	"encoding/json"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 )
 
 type requests struct {
 	err error
 
+	urls   map[string]*url.URL
 	client *http.Client
 }
 
@@ -18,7 +20,7 @@ type Option func(r *requests) error
 
 // 开启 cookie option
 func OptionEnableCookie(r *requests) error {
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return err
 	}
@@ -28,7 +30,7 @@ func OptionEnableCookie(r *requests) error {
 }
 
 func New(options ...Option) *requests {
-	r := &requests{}
+	r := &requests{urls: make(map[string]*url.URL)}
 	for _, option := range options {
 		if r.err = option(r); r.err != nil {
 			return r
@@ -39,4 +41,33 @@ func New(options ...Option) *requests {
 	}
 
 	return r
+}
+
+func (r *requests) Cookies() []*http.Cookie {
+	if r.client.Jar == nil {
+		return nil
+	}
+
+	var cookies []*http.Cookie
+	for _, u := range r.urls {
+		c := r.client.Jar.Cookies(u)
+		if c != nil {
+			cookies = append(cookies, c...)
+		}
+	}
+	return cookies
+}
+
+func (r *requests) CookiesSring() (string, error) {
+	cookies := r.Cookies()
+	if cookies == nil {
+		return "", nil
+	}
+
+	bs, err := json.Marshal(cookies)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bs), nil
 }
