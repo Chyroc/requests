@@ -45,15 +45,15 @@ func ReqOptionAddHeaderKV(k, v string) RequestOption {
 	})
 }
 
-func (r *requests) Get(url string, options ...RequestOption) (Response, error) {
+func (r *Request) Get(url string, options ...RequestOption) (Response, error) {
 	return r.request(http.MethodGet, url, options...)
 }
 
-func (r *requests) Post(url string, options ...RequestOption) (Response, error) {
+func (r *Request) Post(url string, options ...RequestOption) (Response, error) {
 	return r.request(http.MethodPost, url, options...)
 }
 
-func (r *requests) request(method, uri string, options ...RequestOption) (Response, error) {
+func (r *Request) request(method, uri string, options ...RequestOption) (Response, error) {
 	if r.err != nil {
 		return Response{}, r.err
 	}

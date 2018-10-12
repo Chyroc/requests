@@ -7,19 +7,19 @@ import (
 	"net/url"
 )
 
-type requests struct {
+type Request struct {
 	err error
 
 	urls   map[string]*url.URL
 	client *http.Client
 }
 
-var Default = &requests{}
+var Default = &Request{}
 
-type Option func(r *requests) error
+type Option func(r *Request) error
 
 // 开启 cookie option
-func OptionEnableCookie(r *requests) error {
+func OptionEnableCookie(r *Request) error {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return err
@@ -29,8 +29,8 @@ func OptionEnableCookie(r *requests) error {
 	return nil
 }
 
-func New(options ...Option) *requests {
-	r := &requests{urls: make(map[string]*url.URL)}
+func New(options ...Option) *Request {
+	r := &Request{urls: make(map[string]*url.URL)}
 	for _, option := range options {
 		if r.err = option(r); r.err != nil {
 			return r
@@ -43,7 +43,7 @@ func New(options ...Option) *requests {
 	return r
 }
 
-func (r *requests) Cookies() []*http.Cookie {
+func (r *Request) Cookies() []*http.Cookie {
 	if r.client.Jar == nil {
 		return nil
 	}
@@ -58,7 +58,7 @@ func (r *requests) Cookies() []*http.Cookie {
 	return cookies
 }
 
-func (r *requests) CookiesSring() (string, error) {
+func (r *Request) CookiesSring() (string, error) {
 	cookies := r.Cookies()
 	if cookies == nil {
 		return "", nil
