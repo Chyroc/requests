@@ -1,7 +1,6 @@
 package requests
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -41,33 +40,4 @@ func New(options ...Option) *Request {
 	}
 
 	return r
-}
-
-func (r *Request) Cookies() []*http.Cookie {
-	if r.client.Jar == nil {
-		return nil
-	}
-
-	var cookies []*http.Cookie
-	for _, u := range r.urls {
-		c := r.client.Jar.Cookies(u)
-		if c != nil {
-			cookies = append(cookies, c...)
-		}
-	}
-	return cookies
-}
-
-func (r *Request) CookiesSring() (string, error) {
-	cookies := r.Cookies()
-	if cookies == nil {
-		return "", nil
-	}
-
-	bs, err := json.Marshal(cookies)
-	if err != nil {
-		return "", err
-	}
-
-	return string(bs), nil
 }
