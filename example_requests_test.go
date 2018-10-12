@@ -49,8 +49,29 @@ func Example_withHeader() {
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println(string(resp.Bytes))
+
+	resp2, err := r.Get(url, requests.ReqOptionHeaderMap(map[string]string{"test-2": "test-header"}))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(resp2.Bytes))
+}
+
+func Example_withQuery() {
+	r := requests.New(requests.OptionEnableCookie)
+
+	resp, err := r.Get(url, requests.ReqOptionQueryKV("test", "test-query"))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(resp.Bytes))
+
+	resp2, err := r.Get(url, requests.ReqOptionQueryMap(map[string]string{"test-2": "test-query"}))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(resp2.Bytes))
 }
 
 func Example_withBody() {
