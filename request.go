@@ -4,19 +4,22 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"sync"
 )
 
 type Request struct {
 	err error
 
-	urls   map[string]*url.URL
+	urls map[string]*url.URL
+	lock sync.Mutex
+
 	client *http.Client
 
 	reqOptions  []ReqOption
 	respOptions []RespOption
 }
 
-var Default = &Request{}
+var Default = &Request{urls: make(map[string]*url.URL), client: new(http.Client)}
 
 type Option func(r *Request) error
 

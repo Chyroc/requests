@@ -24,7 +24,9 @@ func (r *Request) request(method, uri string, options ...ReqOption) (Response, e
 	if err != nil {
 		return Response{}, err
 	}
+	r.lock.Lock()
 	r.urls[URL.Host] = URL
+	r.lock.Unlock()
 
 	var body io.Reader
 	for _, v := range options {
