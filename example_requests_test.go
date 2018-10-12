@@ -45,7 +45,7 @@ func Example_withCookie() {
 func Example_withHeader() {
 	r := requests.New(requests.OptionEnableCookie)
 
-	resp, err := r.Get(url, requests.ReqOptionAddHeaderKV("test", "test-header"))
+	resp, err := r.Get(url, requests.ReqOptionHeaderKV("test", "test-header"))
 	if err != nil {
 		panic(err)
 	}
@@ -69,11 +69,38 @@ func Example_customized() {
 
 	resp, err := r.Get(url,
 		requests.ReqOptionBody(strings.NewReader("a=b&c=d")),
-		requests.NewRequestOption(func(req *http.Request) error {
+		requests.NewReqOption(func(req *http.Request) error {
 			req.SetBasicAuth("name", "password")
 			return nil
 		}),
 	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(resp.Bytes))
+}
+
+func Example_hook() {
+	r := requests.New(requests.OptionEnableCookie)
+
+	// all request have this token-header
+	r.ReqHook(requests.ReqOptionHeaderKV("Authorization", "token"))
+
+	// all request well check resp-code
+	r.RespHook(func(resp *requests.Response) error {
+		var response = make(map[string]interface{})
+		if err := resp.BindJson(&response); err != nil {
+			return err
+		}
+		if response["code"].(int) != 0 {
+			return fmt.Errorf("request err")
+		}
+
+		return nil
+	})
+
+	resp, err := r.Get(url)
 	if err != nil {
 		panic(err)
 	}

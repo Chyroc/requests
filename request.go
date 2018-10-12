@@ -11,6 +11,9 @@ type Request struct {
 
 	urls   map[string]*url.URL
 	client *http.Client
+
+	reqOptions  []ReqOption
+	respOptions []RespOption
 }
 
 var Default = &Request{}

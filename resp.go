@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+type RespOption func(resp *Response) error
+
 type Response struct {
 	*http.Response
 	Bytes []byte
