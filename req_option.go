@@ -1,9 +1,10 @@
 package requests
 
 import (
-	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 type ReqOption interface {
@@ -24,13 +25,19 @@ func (r *normalReqOption) Bind(req *http.Request) error {
 
 type bodyReqOption struct {
 	body io.Reader
+	fs   []func(req *http.Request) error
 }
 
 func (r *bodyReqOption) Bind(req *http.Request) error {
-	return fmt.Errorf("body request option no nedd cal bind")
+	for _, v := range r.fs {
+		if err := v(req); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func ReqOptionBody(body io.Reader) ReqOption {
+func ReqOptionBody(body io.Reader, f ...func(req *http.Request) error) ReqOption {
 	return &bodyReqOption{
 		body: body,
 	}
@@ -70,6 +77,18 @@ func ReqOptionQueryMap(query map[string]string) ReqOption {
 			}
 			req.URL.RawQuery = q.Encode()
 		}
+		return nil
+	})
+}
+
+func ReqOptionFrom(form map[string]string) ReqOption {
+	values := make(url.Values)
+	for k, v := range form {
+		values.Set(k, v)
+	}
+
+	return ReqOptionBody(strings.NewReader(values.Encode()), func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		return nil
 	})
 }

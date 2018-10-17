@@ -43,19 +43,15 @@ func (r *Request) request(method, uri string, options ...ReqOption) (Response, e
 
 	// hook option
 	for _, v := range r.reqOptions {
-		if _, ok := v.(*bodyReqOption); !ok {
-			if err := v.Bind(req); err != nil {
-				return Response{}, err
-			}
+		if err := v.Bind(req); err != nil {
+			return Response{}, err
 		}
 	}
 
 	// option
 	for _, v := range options {
-		if _, ok := v.(*bodyReqOption); !ok {
-			if err := v.Bind(req); err != nil {
-				return Response{}, err
-			}
+		if err := v.Bind(req); err != nil {
+			return Response{}, err
 		}
 	}
 
