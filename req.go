@@ -15,6 +15,14 @@ func (r *Request) Post(url string, options ...ReqOption) (Response, error) {
 	return r.request(http.MethodPost, url, options...)
 }
 
+func (r *Request) Delete(url string, options ...ReqOption) (Response, error) {
+	return r.request(http.MethodDelete, url, options...)
+}
+
+func (r *Request) Put(url string, options ...ReqOption) (Response, error) {
+	return r.request(http.MethodPut, url, options...)
+}
+
 func (r *Request) request(method, uri string, options ...ReqOption) (Response, error) {
 	if r.err != nil {
 		return Response{}, r.err
